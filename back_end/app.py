@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Enables Cross-Origin Resource Sharing for React
+CORS(app)  # Enables cross-origin requests from your React app
 
 @app.route("/api/greeting", methods=["GET", "POST"])
 def greeting():
@@ -18,7 +18,6 @@ def greeting():
 
 @app.route("/api/simulations", methods=["POST"])
 def simulate():
-    """API Endpoint to calculate AI operational impact based on weather & traffic"""
     data = request.get_json() or {}
     weather = data.get("weather", "clear")
     incident = data.get("incident", "none")
