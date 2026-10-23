@@ -1,10 +1,14 @@
 import os
+import hashlib
+import secrets
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Lock
 from urllib.parse import urlencode
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, g, session, send_from_directory
+from werkzeug.local import LocalProxy
+from werkzeug.middleware.proxy_fix import ProxyFix
 try:
     from dotenv import load_dotenv
     load_dotenv(Path(__file__).with_name(".env"))
@@ -20,14 +24,36 @@ import validation as v
 
 
 def create_app(database=None):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder=None)
     app.config["MAX_CONTENT_LENGTH"] = 64000
-    store = Store(database or os.getenv("ORBYTE_DATABASE") or Path(__file__).with_name("orbyte.sqlite3"))
-    app.config["STORE"] = store
+    hosted_demo = os.getenv("ORBYTE_HOSTED_DEMO", "0") == "1"
+    app.secret_key = os.getenv("ORBYTE_SESSION_SECRET") or secrets.token_hex(32)
+    app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_SECURE=hosted_demo)
+    if hosted_demo:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+    base_store = Store(database or os.getenv("ORBYTE_DATABASE") or Path(__file__).with_name("orbyte.sqlite3"))
+    app.config["STORE"] = base_store
+    frontend = Path(os.getenv("ORBYTE_FRONTEND_DIRECTORY") or Path(__file__).resolve().parent.parent / "front_end" / "dist")
+    global_limit = max(1, int(os.getenv("ORBYTE_AI_DAILY_LIMIT", "12")))
+    client_limit = max(1, int(os.getenv("ORBYTE_AI_PER_IP_DAILY_LIMIT", "3")))
+
+    def visitor_store():
+        if not hosted_demo:
+            return base_store
+        if "visitor_id" not in session:
+            session["visitor_id"] = secrets.token_hex(24)
+        if "store" not in g:
+            g.store = base_store.for_visitor(session["visitor_id"])
+        return g.store
+
+    store = LocalProxy(visitor_store)
     chat_lock = Lock()
 
     def mode():
-        return v.choice(request.headers.get("X-Workspace", "live"), ["live", "demo"], "workspace")
+        selected = v.choice(request.headers.get("X-Workspace", "demo" if hosted_demo else "live"), ["live", "demo"], "workspace")
+        if hosted_demo and selected != "demo":
+            raise ValueError("This online website is a demo. Select Demo scenario; Live workspace is available in the local installation.")
+        return selected
 
     def body():
         data = request.get_json(silent=True)
@@ -47,6 +73,9 @@ def create_app(database=None):
         state["weather"]["stale"] = not weather_current(state)
         state["tomorrow"] = tomorrow()
         state["copilot_configured"] = bool(os.getenv("OPENROUTER_API_KEY", "").strip())
+        state["public_demo"] = hosted_demo
+        if hosted_demo:
+            state["ai_limits"] = {"per_network_daily": client_limit, "global_daily": global_limit}
         return state
 
     @app.errorhandler(ValueError)
@@ -67,6 +96,10 @@ def create_app(database=None):
     def get_state():
         return jsonify(snapshot(mode()))
 
+    @app.get("/api/health")
+    def health():
+        return jsonify(status="ok")
+
     @app.route("/api/greeting", methods=["GET", "POST"])
     def greeting():
         data = request.get_json(silent=True) or {}
@@ -86,18 +119,19 @@ def create_app(database=None):
             changed(state, "Business profile or service window updated by owner.")
         return jsonify(snapshot(selected))
 
-    def reset(selected):
-        with store.edit(selected) as state:
+    def reset(selected, selected_store=None):
+        target_store = selected_store if selected_store is not None else base_store
+        with target_store.edit(selected) as state:
             state.clear()
             state.update(initial_state(True))
-        with store.connection() as db:
-            db.execute("DELETE FROM conversations WHERE mode=?", (selected,))
+        with target_store.connection() as db:
+            db.execute("DELETE FROM conversations WHERE mode=?", (target_store.mode_key(selected),))
 
     @app.post("/api/demo/reset")
     def reset_demo():
         if mode() != "demo":
             raise ValueError("Reset is available only in the demo workspace.")
-        reset("demo")
+        reset("demo", store)
         return jsonify(snapshot("demo"))
 
     @app.post("/api/events")
@@ -182,16 +216,14 @@ def create_app(database=None):
         return jsonify(snapshot(selected)), 201
 
     def locate_question(token):
-        for selected in ["live", "demo"]:
-            state = store.read(selected)
-            q = next((q for q in state["questions"] if q["token"] == token), None)
-            if q:
-                return selected, state, q
+        match = base_store.find_question(token)
+        if match:
+            return match
         raise LookupError("Feedback link not found. Ask the store for a current link.")
 
     @app.get("/api/public/questions/<token>")
     def public_question(token):
-        _, state, q = locate_question(token)
+        _, _, state, q = locate_question(token)
         return jsonify(id=q["id"], text=q["text"], store=state["business"]["name"], target=q["target"],
                        demo=state["workspace"] == "demo", closed=question_closed(state, q))
 
@@ -200,13 +232,13 @@ def create_app(database=None):
 
     @app.post("/api/public/questions/<token>/responses")
     def respond(token):
-        selected, _, question = locate_question(token)
+        owner_store, selected, _, question = locate_question(token)
         data = body()
         answer = v.choice(data["answer"], ["yes", "no", "not_sure", "skip"], "answer")
         observed = datetime.fromisoformat(data["observed_at"])
         if not observed.tzinfo or observed > now() + timedelta(minutes=5) or observed < now() - timedelta(days=7):
             raise ValueError("Observation must include a timezone and be within the last seven days.")
-        with store.edit(selected) as state:
+        with owner_store.edit(selected) as state:
             q = find(state["questions"], question["id"])
             if question_closed(state, q):
                 raise ValueError("This question is closed. Ask for a current link.")
@@ -314,9 +346,28 @@ def create_app(database=None):
         if not chat_lock.acquire(blocking=False):
             return jsonify(error="Copilot is processing a message. Please wait."), 409
         try:
-            return jsonify(copilot.chat(store, mode(), body()))
+            selected, data = mode(), body()
+            v.text(data.get("message"), "Message", 4000)
+            if hosted_demo and os.getenv("OPENROUTER_API_KEY", "").strip():
+                # Store only a salted digest, never the visitor's raw IP address.
+                client = hashlib.sha256((app.secret_key + (request.remote_addr or "unknown")).encode()).hexdigest()
+                error = base_store.reserve_ai_turn(client, client_limit, global_limit)
+                if error:
+                    return jsonify(error=error), 429
+            return jsonify(copilot.chat(store, selected, data))
         finally:
             chat_lock.release()
+
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def frontend_app(path):
+        if path == "api" or path.startswith("api/"):
+            return jsonify(error="API route not found."), 404
+        if not frontend.is_dir():
+            return jsonify(error="Frontend build is missing. Build front_end first, or use Vite on port 5173."), 503
+        if path and (frontend / path).is_file():
+            return send_from_directory(frontend, path)
+        return send_from_directory(frontend, "index.html")
 
     @app.cli.command("reset-demo")
     def reset_demo_command():

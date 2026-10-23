@@ -112,7 +112,30 @@ npm run dev -- --host 0.0.0.0
 
 Open the displayed network URL (your computer's LAN address) on the owner's browser before copying the customer link. The feedback link then uses the same LAN origin and works on a phone on that network. Keep Flask on 127.0.0.1; Vite forwards the requests. Windows may require a local firewall permission.
 
-This MVP has **no owner login or multi-tenant isolation**. Keep it local or on a trusted demo network; public production deployment requires owner authentication and access controls. Customer token endpoints return only the question, store name and target window, without exposing private store settings or observations.
+The local installation has **no owner login** and assumes one trusted owner. The hosted demo uses separate anonymous browser sessions for sample data; it is not a production merchant account system. Customer token endpoints return only the question, store name and target window, without exposing private store settings or observations.
+
+## Deploy the free online demo on Render
+
+The root `Dockerfile` builds React, then serves the frontend and Flask API together with Gunicorn. `render.yaml` configures one **Free** Docker web service in Singapore. No database subscription or persistent disk is required.
+
+1. Push the source to your own GitHub repository. Keep `.env`, virtual environments, databases and `node_modules` excluded; `.gitignore` and `.dockerignore` already do this.
+2. In Render, choose **New → Blueprint**, connect that repository and select `main`. Review the single Free web service before creating it. Alternatively choose **New → Web Service**, Docker, repository root, Free, Singapore, and health check `/api/health`.
+3. Enter `OPENROUTER_API_KEY` as a secret environment variable in Render. Never paste it into GitHub source, a build argument, a frontend variable or a chat. Friends use the website without providing their own key.
+4. Keep `OPENROUTER_MODEL=openrouter/free`. The Blueprint generates `ORBYTE_SESSION_SECRET`; for manual setup, generate a long random secret and set it in Render. Do not reuse the OpenRouter key as the session secret.
+5. The Blueprint sets `ORBYTE_HOSTED_DEMO=1`, `ORBYTE_AI_PER_IP_DAILY_LIMIT=3`, and `ORBYTE_AI_DAILY_LIMIT=12`. For manual setup, add these variables too. Wait for the build to finish, then open the generated HTTPS `onrender.com` URL.
+6. Check `/api/health`, run the demonstration above and send one Copilot message. Share the HTTPS website URL with friends. Do not share the Render dashboard, secret values or a local `127.0.0.1` address.
+
+Hosted behavior:
+
+- Anyone with the website link can explore the simulated scenario. Each browser receives a signed, HttpOnly, Secure session cookie and separate workspace/conversations. Clearing the cookie starts another sample workspace. It does not bypass the network-wide AI limit.
+- The online service exposes only Demo mode. Live weather and real merchant records remain available in the local installation. Use sample information online; no owner login is provided.
+- Shared AI requests use the owner's backend key. Every validated attempt counts, including a provider timeout or limit error; a missing key does not count. Defaults allow 3 attempts per network and 12 globally per Malaysia calendar day. A chat may make up to 5 provider requests and 8 tool calls. Copilot never switches automatically to a paid model.
+- The database stores a salted hash of the network address for the allowance, not the raw IP. People on the same Wi-Fi share the network allowance. One Copilot turn runs at a time; a concurrent request receives a retry message.
+- **Reset demo** clears only that browser's sample workspace and conversations. It does not clear the shared AI allowance or another visitor's workspace. Public feedback tokens route to their originating workspace, even from a different browser.
+- Render Free sleeps after 15 idle minutes and can take about a minute to wake. Its filesystem is temporary: sleep, restart or redeploy can erase records, conversations, feedback links **and quota counters**. These limits are best-effort demo controls, not a durable billing cap. Set a separate provider-side key limit if a hard ceiling is needed.
+- No payment method or paid upgrade is needed for this configuration. Render may suspend the free service if its included allowance is exhausted. See [Render's free-service limitations](https://render.com/docs/free).
+
+For production use, add owner authentication and durable storage for records and usage counters before entering real merchant data. This free demo intentionally accepts resets.
 
 ## API and persistence
 
@@ -120,6 +143,7 @@ SQLite database: `back_end/orbyte.sqlite3` (override with `ORBYTE_DATABASE`). It
 
 Main endpoints:
 - `GET /api/state` — latest store, checks, records and configuration availability.
+- `GET /api/health` — deployment health check without private data.
 - `PUT /api/business` — save profile and target window.
 - `POST /api/events`, `DELETE /api/events/:id`, `POST /api/weather/refresh`.
 - `GET /api/checks`, `POST /api/checks` — saved checks or unsaved assumptions.

@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: orbyte-readiness-demo
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: ORBYTE_HOSTED_DEMO
+        value: "1"
+      - key: ORBYTE_AI_DAILY_LIMIT
+        value: "12"
+      - key: ORBYTE_AI_PER_IP_DAILY_LIMIT
+        value: "3"
+      - key: OPENROUTER_MODEL
+        value: openrouter/free
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ORBYTE_SESSION_SECRET
+        generateValue: true

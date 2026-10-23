@@ -345,5 +345,115 @@ class CopilotTests(unittest.TestCase):
         self.assertLessEqual(provider.call_count, 5)
 
 
+class HostedDemoTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.path = Path(self.folder.name) / 'hosted.sqlite3'
+        self.frontend = Path(self.folder.name) / 'dist'
+        self.frontend.mkdir()
+        (self.frontend / 'index.html').write_text('<main>Orbyte production</main>')
+        (self.frontend / 'asset.js').write_text('console.log("Orbyte")')
+        self.environment = patch.dict(os.environ, {
+            'ORBYTE_HOSTED_DEMO': '1', 'ORBYTE_SESSION_SECRET': 'test-session-secret',
+            'ORBYTE_AI_DAILY_LIMIT': '3', 'ORBYTE_AI_PER_IP_DAILY_LIMIT': '2',
+            'OPENROUTER_API_KEY': 'test-only-key', 'ORBYTE_FRONTEND_DIRECTORY': str(self.frontend)})
+        self.environment.start()
+        self.app = create_app(self.path)
+        self.app.testing = True
+        self.owner, self.other = self.app.test_client(), self.app.test_client()
+
+    def tearDown(self):
+        self.environment.stop()
+        self.folder.cleanup()
+
+    def request(self, client, path='/state', method='GET', data=None, ip='203.0.113.1'):
+        return client.open('/api' + path, method=method, json=data, base_url='https://demo.example',
+                           headers={'X-Forwarded-For': ip})
+
+    def test_browser_isolation_and_public_feedback_targets_owner(self):
+        response = self.request(self.owner)
+        self.assertTrue(response.json['public_demo'])
+        cookie = response.headers['Set-Cookie']
+        for attribute in ['Secure', 'HttpOnly', 'SameSite=Lax']:
+            self.assertIn(attribute, cookie)
+        q = self.request(self.owner, '/questions', 'POST', {}).json['questions'][0]
+        self.assertEqual(self.request(self.other).json['questions'], [])
+        public = self.request(self.other, '/public/questions/' + q['token'])
+        self.assertEqual(set(public.json), {'id', 'text', 'store', 'target', 'demo', 'closed'})
+        answer = self.request(self.other, '/public/questions/' + q['token'] + '/responses',
+                              'POST', {'answer': 'no', 'observed_at': stamp()})
+        self.assertEqual(answer.status_code, 201)
+        state = self.request(self.owner).json
+        self.assertEqual(len(state['questions'][0]['observations']), 1)
+        self.assertEqual(state['checks']['plans'][2]['status'], 'insufficient_data')
+        self.assertEqual(self.request(self.other).json['questions'], [])
+        self.assertEqual(self.request(self.other, '/questions/' + q['id'] + '/verify', 'POST',
+                         {'value': 'yes', 'notes': 'Cannot access another browser workspace.'}).status_code, 404)
+        self.request(self.other, '/demo/reset', 'POST', {})
+        self.assertEqual(len(self.request(self.owner).json['questions']), 1)
+
+    def test_shared_quota_cannot_be_reset_by_new_browser_or_demo_reset(self):
+        with patch('copilot.json_request', return_value=CopilotTests.answer(self)) as provider:
+            first = self.request(self.owner, '/copilot/chat', 'POST', {'message': 'Hello'})
+            self.assertEqual(first.status_code, 200)
+            cid = first.json['conversation_id']
+            self.assertEqual(self.request(self.other, '/copilot/conversations').json, [])
+            self.assertEqual(len(self.request(self.owner, '/copilot/conversations').json), 1)
+            self.assertEqual(self.request(self.owner, '/copilot/chat', 'POST', {'message': 'Again'}).status_code, 200)
+            self.request(self.owner, '/demo/reset', 'POST', {})
+            self.assertEqual(self.request(self.other, '/copilot/chat', 'POST', {'message': 'Try'}).status_code, 429)
+            self.assertEqual(self.request(self.other, '/copilot/chat', 'POST',
+                {'message': 'Another network'}, ip='203.0.113.2').status_code, 200)
+            self.assertEqual(self.request(self.owner, '/copilot/chat', 'POST',
+                {'message': 'Global cap'}, ip='203.0.113.3').status_code, 429)
+            self.assertEqual(provider.call_count, 3)
+            self.assertEqual(self.request(self.other, '/copilot/chat', 'POST',
+                {'message': 'Unknown conversation', 'conversation_id': cid}, ip='203.0.113.4').status_code, 429)
+
+    def test_missing_configuration_and_invalid_message_do_not_use_quota(self):
+        self.assertEqual(self.request(self.owner, '/copilot/chat', 'POST', {'message': ''}).status_code, 400)
+        with patch.dict(os.environ, {'OPENROUTER_API_KEY': ''}):
+            self.assertEqual(self.request(self.owner, '/copilot/chat', 'POST', {'message': 'Hello'}).status_code, 503)
+        with self.app.config['STORE'].connection() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM ai_usage').fetchone()[0], 0)
+
+    def test_other_visitor_cannot_continue_an_owners_conversation(self):
+        with patch('copilot.json_request', return_value=CopilotTests.answer(self)) as provider:
+            cid = self.request(self.owner, '/copilot/chat', 'POST', {'message': 'Hello'}).json['conversation_id']
+            response = self.request(self.other, '/copilot/chat', 'POST',
+                                    {'message': 'Continue it', 'conversation_id': cid})
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(provider.call_count, 1)
+            self.assertEqual(self.request(self.other, '/copilot/conversations').json, [])
+
+    def test_simultaneous_requests_reserve_only_the_available_allowance(self):
+        from concurrent.futures import ThreadPoolExecutor
+        store = self.app.config['STORE']
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            outcomes = list(executor.map(lambda i: store.reserve_ai_turn(str(i), 2, 3), range(8)))
+        self.assertEqual(outcomes.count(None), 3)
+        with store.connection() as db:
+            self.assertEqual(db.execute("SELECT used FROM ai_usage WHERE client='global'").fetchone()[0], 3)
+
+    def test_provider_failure_counts_and_next_malaysian_day_restores_quota(self):
+        with patch('copilot.json_request', side_effect=ConnectionError('Provider timeout')):
+            for _ in range(2):
+                self.assertEqual(self.request(self.owner, '/copilot/chat', 'POST', {'message': 'Hello'}).status_code, 503)
+            self.assertEqual(self.request(self.owner, '/copilot/chat', 'POST', {'message': 'Again'}).status_code, 429)
+            with patch('storage.now', return_value=now() + timedelta(days=1)):
+                self.assertEqual(self.request(self.owner, '/copilot/chat', 'POST', {'message': 'Tomorrow'}).status_code, 503)
+
+    def test_production_assets_feedback_spa_and_live_disabled(self):
+        self.assertEqual(self.owner.get('/api/health').json, {'status': 'ok'})
+        with self.owner.get('/') as page:
+            self.assertIn(b'Orbyte production', page.data)
+        with self.owner.get('/feedback/some-token') as page:
+            self.assertIn(b'Orbyte production', page.data)
+        with self.owner.get('/asset.js') as asset:
+            self.assertIn(b'console.log', asset.data)
+        self.assertEqual(self.owner.get('/api/unknown').status_code, 404)
+        self.assertEqual(self.owner.get('/api/state', headers={'X-Workspace': 'live'}).status_code, 400)
+
+
 if __name__ == '__main__':
     unittest.main()
