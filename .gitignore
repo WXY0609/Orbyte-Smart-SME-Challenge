@@ -1,0 +1,12 @@
+**/node_modules/
+**/dist/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.pyc
+**/.env
+**/*.sqlite3
+**/*.sqlite3-*
+.pytest_cache/
+.vscode/
+repomix-output.*
