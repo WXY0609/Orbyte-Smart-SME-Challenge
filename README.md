@@ -6,7 +6,9 @@ English interface, dark responsive UI, and MYR amounts displayed consistently as
 
 ## Replit utilization
 
-**Replit project:** [Open Orbyte on Replit](https://replit.com/@wongxingyou2005/Orbyte-Smart-SME-Challenge).
+**Public Replit utilization evidence:** [View the Replit workspace screenshot](docs/evidence/replit-workspace.png).
+
+**Live product demo:** [Open Orbyte on Render](https://orbyte-readiness-demo.onrender.com).
 
 Team Allstar imported Orbyte's existing GitHub codebase into Replit and used **Replit Agent** to configure the application's Flask demo environment. The application was then run in **Replit Preview** to review its interface and functionality.
 
@@ -14,7 +16,7 @@ The screenshot below documents the Replit project name, Agent setup conversation
 
 ![Orbyte running in Replit Preview alongside the Replit Agent setup conversation](docs/evidence/replit-workspace.png)
 
-[Open the full Replit evidence screenshot](docs/evidence/replit-workspace.png).
+The screenshot is publicly accessible in this repository. Direct access to the Replit workspace has not been verified for anonymous visitors; judges who require workspace inspection can arrange access with Team Allstar separately.
 
 The original codebase existed before this import. Replit's documented role was importing, configuring and running the existing application. The screenshot is evidence of that setup and preview; it does not by itself establish that automated tests or a real AI request succeeded inside Replit. OpenRouter powers the in-app Copilot, while the separate public demo is hosted on [Render](https://orbyte-readiness-demo.onrender.com).
 
