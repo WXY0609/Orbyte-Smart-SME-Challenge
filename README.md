@@ -8,15 +8,15 @@ English interface, dark responsive UI, and MYR amounts displayed consistently as
 
 ## Hackathon project summary
 
-**Team:** Allstar
+**Team:** AllStar
 
-**Project:** Orbyte
+**Project:** Orbyte Smart SME
 
 **Initial users:** Independent restaurants and cafés in Malaysia, especially businesses with outdoor seating or pickup operations.
 
 **Product stage:** Working restaurant MVP with a public simulated demo. Real merchant adoption, time savings, revenue impact and willingness to pay have not yet been validated.
 
-Restaurant owners have to check weather and local notices, relate them to their own opening hours and facilities, and decide whether a backup plan will work. Orbyte brings these conditions into one preparation workflow. Its main capability is checking whether a response to one disruption conflicts with another known condition, then identifying the specific information needed to resolve the gap.
+Restaurant owners have to check weather and local notices, relate them to their own opening hours and facilities, and decide whether a backup plan will work. Orbyte Smart SME brings these conditions into one preparation workflow. Its main capability is checking whether a response to one disruption conflicts with another known condition, then identifying the specific information needed to resolve the gap.
 
 The owner remains responsible for verifying tomorrow's conditions and approving exact actions. AI explains records and prepares drafts; the backend rules determine plan status. This MVP supports one restaurant and one service window per day.
 
@@ -39,7 +39,7 @@ The owner remains responsible for verifying tomorrow's conditions and approving 
 | Live Demo         | https://47b2108b-2931-4783-8bc1-4fb1cbeaabd8-00-eane03jq8jmq.sisko.replit.dev/                |
 | RunPod Endpoint   | -                                              |
 | Slide Deck        | https://docs.google.com/presentation/d/1KLEntrrBir-C_Z0eLRcv1bBGUhdC1fPF/edit?slide=id.p2#slide=id.p2                     |
-| Demo Video        | https://example.com/demo-video                 |
+| Demo Video        | https://drive.google.com/drive/folders/1ZECwqyCNx0nLCSK3sGOIXoraCKRtjSRj                                    |
 
 ### Team Allstar
 
