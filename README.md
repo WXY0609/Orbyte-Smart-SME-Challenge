@@ -6,6 +6,8 @@ English interface, dark responsive UI, and MYR amounts displayed consistently as
 
 ## Replit utilization
 
+**Replit project:** [Open Orbyte on Replit](https://replit.com/@wongxingyou2005/Orbyte-Smart-SME-Challenge).
+
 Team Allstar imported Orbyte's existing GitHub codebase into Replit and used **Replit Agent** to configure the application's Flask demo environment. The application was then run in **Replit Preview** to review its interface and functionality.
 
 The screenshot below documents the Replit project name, Agent setup conversation and checkpoint, and Orbyte's running preview. It also shows that the OpenRouter key was supplied through Replit's secret input, without displaying the key value.
