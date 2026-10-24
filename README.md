@@ -39,7 +39,7 @@ The owner remains responsible for verifying tomorrow's conditions and approving 
 | Live Demo         | https://47b2108b-2931-4783-8bc1-4fb1cbeaabd8-00-eane03jq8jmq.sisko.replit.dev/                |
 | RunPod Endpoint   | -                                              |
 | Slide Deck        | https://docs.google.com/presentation/d/1KLEntrrBir-C_Z0eLRcv1bBGUhdC1fPF/edit?slide=id.p2#slide=id.p2                     |
-| Demo Video        | https://drive.google.com/drive/folders/1ZECwqyCNx0nLCSK3sGOIXoraCKRtjSRj                                    |
+| Demo Video        | https://youtu.be/0BTKreFiH9w                   |
 
 ### Team Allstar
 
