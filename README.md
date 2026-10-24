@@ -386,6 +386,4 @@ Before real merchant deployment, add owner authentication and durable business r
 
 Copyright 2026 Team Allstar and Orbyte contributors.
 
-This project is licensed under the **Apache License, Version 2.0**. See [LICENSE](LICENSE) for the full terms. Third-party dependencies retain their respective licenses.
 
-The YouTube demo URL, official submission template and official tech-tools declaration template have not been supplied. The recording guide and tools declaration above provide the available material for completing those items; they are not substitutes for an uploaded video or completed organiser forms.
