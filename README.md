@@ -4,6 +4,18 @@ A restaurant readiness MVP for SMEs: **events → business conditions → plan c
 
 English interface, dark responsive UI, and MYR amounts displayed consistently as **RM 1,250.00**. React 18 / Vite 5 frontend, Flask backend, SQLite persistence. OpenRouter powers the real AI Copilot; deterministic Python rules decide condition status.
 
+## Replit utilization
+
+Team Allstar imported Orbyte's existing GitHub codebase into Replit and used **Replit Agent** to configure the application's Flask demo environment. The application was then run in **Replit Preview** to review its interface and functionality.
+
+The screenshot below documents the Replit project name, Agent setup conversation and checkpoint, and Orbyte's running preview. It also shows that the OpenRouter key was supplied through Replit's secret input, without displaying the key value.
+
+![Orbyte running in Replit Preview alongside the Replit Agent setup conversation](docs/evidence/replit-workspace.png)
+
+[Open the full Replit evidence screenshot](docs/evidence/replit-workspace.png).
+
+The original codebase existed before this import. Replit's documented role was importing, configuring and running the existing application. The screenshot is evidence of that setup and preview; it does not by itself establish that automated tests or a real AI request succeeded inside Replit. OpenRouter powers the in-app Copilot, while the separate public demo is hosted on [Render](https://orbyte-readiness-demo.onrender.com).
+
 ## Start locally (Windows / PowerShell)
 
 Requires Node.js 18+ (20+ recommended), Python 3.11+ and Internet access for initial dependency installation. Do not reuse the checked-in/old `back_end/venv`: it refers to another machine. Create a fresh ignored `.venv`.
