@@ -1,5 +1,7 @@
 # Orbyte · Ready for Tomorrow
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 A restaurant readiness MVP for SMEs: **events → business conditions → plan checks → voluntary confirmation → owner approval → execution tracking**.
 
 English interface, dark responsive UI, and MYR amounts displayed consistently as **RM 1,250.00**. React 18 / Vite 5 frontend, Flask backend, SQLite persistence. OpenRouter powers the real AI Copilot; deterministic Python rules decide condition status.
@@ -23,6 +25,7 @@ The owner remains responsible for verifying tomorrow's conditions and approving 
 | Resource | Link or current status |
 | --- | --- |
 | Source code | [GitHub repository](https://github.com/WXY0609/Orbyte-Smart-SME-Challenge) |
+| License | [Apache License 2.0](LICENSE) |
 | Live product demo | [Orbyte on Render](https://orbyte-readiness-demo.onrender.com) |
 | Replit utilization proof | [Workspace screenshot](docs/evidence/replit-workspace.png) and [usage explanation below](#replit-utilization) |
 | Pitch deck | [Editable PowerPoint](docs/submission/Allstar-Orbyte-Pitch.pptx) · [PDF preview](docs/submission/Allstar-Orbyte-Pitch.pdf) |
@@ -137,7 +140,7 @@ render.yaml              Free hosted-demo configuration
 | Pitch deck slides | PowerPoint and PDF are included in `docs/submission/`. |
 | YouTube product demo link | Pending recording/upload. The three-minute narration and recording guide are included. |
 | Fully populated README summary | This README documents the product, team, workflow, tools, evidence, setup, API, validation and known limitations. |
-| Apache License 2.0 | Included in the repository's [LICENSE](LICENSE) file. |
+| Apache License 2.0 | Complete — the full license is included in [LICENSE](LICENSE). |
 
 The repository summary is populated with confirmed information. The YouTube link and organiser forms remain outstanding for the final submission.
 
@@ -382,8 +385,8 @@ The last completed local project validation passed **35 backend tests**, **3 fro
 
 Before real merchant deployment, add owner authentication and durable business records and usage counters. The next product step is a small restaurant pilot to measure preparation time, unresolved conditions and task completion, followed by selected official notice integrations and real messaging.
 
-## License and outstanding submission material
+## License
 
 Copyright 2026 Team Allstar and Orbyte contributors.
 
-
+SPDX license identifier: `Apache-2.0`.
