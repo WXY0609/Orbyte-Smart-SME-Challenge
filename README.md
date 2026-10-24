@@ -137,9 +137,9 @@ render.yaml              Free hosted-demo configuration
 | Pitch deck slides | PowerPoint and PDF are included in `docs/submission/`. |
 | YouTube product demo link | Pending recording/upload. The three-minute narration and recording guide are included. |
 | Fully populated README summary | This README documents the product, team, workflow, tools, evidence, setup, API, validation and known limitations. |
-| Apache License 2.0 | Pending. No repository `LICENSE` file is currently present. The required Apache-2.0 license file must be added before treating this requirement as complete. |
+| Apache License 2.0 | Included in the repository's [LICENSE](LICENSE) file. |
 
-The repository summary is populated with confirmed information. The submission is not represented as fully complete while the YouTube link, organiser forms and required license file remain outstanding.
+The repository summary is populated with confirmed information. The YouTube link and organiser forms remain outstanding for the final submission.
 
 ## Replit utilization
 
@@ -384,6 +384,8 @@ Before real merchant deployment, add owner authentication and durable business r
 
 ## License and outstanding submission material
 
-The organiser requires **Apache License 2.0**. There is currently no `LICENSE` file in this repository, so this README does not claim that the code is already licensed under Apache-2.0. The team still needs to add the required license file before final submission.
+Copyright 2026 Team Allstar and Orbyte contributors.
+
+This project is licensed under the **Apache License, Version 2.0**. See [LICENSE](LICENSE) for the full terms. Third-party dependencies retain their respective licenses.
 
 The YouTube demo URL, official submission template and official tech-tools declaration template have not been supplied. The recording guide and tools declaration above provide the available material for completing those items; they are not substitutes for an uploaded video or completed organiser forms.
