@@ -26,7 +26,7 @@ The owner remains responsible for verifying tomorrow's conditions and approving 
 | ---------------------- | ------------------------------------------- |
 | **Team Name**          | AllStar                                     |
 | **Team Domain**        | Domain 2                                    |
-| **SDG Track (1–17)**   | e.g. SDG 8-Decent Work and Economic Growth
+| **SDG Track (1–17)**   | SDG 8-Decent Work and Economic Growth
 | **Team Leader**        | Phan Yi Yan                                 |
 | **University**         | Universiti Sains Malaysia                   |
 | **Number of Members**  | 5                                           |
