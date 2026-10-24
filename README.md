@@ -22,16 +22,24 @@ The owner remains responsible for verifying tomorrow's conditions and approving 
 
 ### Project and submission links
 
-| Resource | Link or current status |
-| --- | --- |
-| Source code | [GitHub repository](https://github.com/WXY0609/Orbyte-Smart-SME-Challenge) |
-| License | [Apache License 2.0](LICENSE) |
-| Live product demo | [Orbyte on Render](https://orbyte-readiness-demo.onrender.com) |
-| Replit utilization proof | [Workspace screenshot](docs/evidence/replit-workspace.png) and [usage explanation below](#replit-utilization) |
-| Pitch deck | [Editable PowerPoint](docs/submission/Allstar-Orbyte-Pitch.pptx) · [PDF preview](docs/submission/Allstar-Orbyte-Pitch.pdf) |
-| Presenter material | [English speaker notes, Chinese prompts and judge Q&A](docs/submission/Presenter-Guide.md) |
-| Product demo video | No YouTube video has been uploaded or supplied. A [three-minute recording guide](docs/submission/Demo-Recording-Guide.md) with narration and exact screen actions is available. |
-| RunPod utilization | Not used in the current implementation. No RunPod integration or evidence is claimed. |
+| Field                  | Details                                     |
+| ---------------------- | ------------------------------------------- |
+| **Team Name**          | AllStar                                     |
+| **Team Domain**        | Domain 2                                    |
+| **SDG Track (1–17)**   | e.g. SDG 8-Decent Work and Economic Growth
+| **Team Leader**        | Phan Yi Yan                                 |
+| **University**         | Universiti Sains Malaysia                   |
+| **Number of Members**  | 5                                           |
+
+## Links
+
+| Resource          | Link                                           |
+| ----------------- | ---------------------------------------------- |
+| GitHub Repository | https://github.com/WXY0609/Orbyte-Smart-SME-Challenge.git  |
+| Live Demo         | https://47b2108b-2931-4783-8bc1-4fb1cbeaabd8-00-eane03jq8jmq.sisko.replit.dev/                |
+| RunPod Endpoint   | -                                              |
+| Slide Deck        | https://docs.google.com/presentation/d/1KLEntrrBir-C_Z0eLRcv1bBGUhdC1fPF/edit?slide=id.p2#slide=id.p2                     |
+| Demo Video        | https://example.com/demo-video                 |
 
 ### Team Allstar
 
