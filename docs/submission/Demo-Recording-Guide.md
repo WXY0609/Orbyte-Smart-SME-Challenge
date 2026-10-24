@@ -166,4 +166,3 @@ Approval and execution are separate steps. We start the preparation, record the 
 The real OpenRouter Copilot reloads the latest business context. It can explain the remaining constraints, inspect tasks and prepare drafts, with links to verified records. Temporary assumptions do not overwrite saved facts. The model has no tools to approve actions, verify access or complete tasks. Those decisions stay with the owner.
 
 Orbyte connects tomorrow's risks to checked preparation. Built by Team Allstar. Explore the demo, and help us test it with restaurant owners.
-
